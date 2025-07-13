@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Car Rental Service</title>
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <style>
+        body {
+          background-color: #ffffff;
+          font-family: 'Segoe UI', sans-serif;
+          animation: fadeIn 1s ease-out;
+          min-height: 100vh;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        h2, h3, h4 {
+          color: #dc3545;
+          font-weight: bold;
+          font-family: 'Segoe UI', sans-serif;
+        }
+
+        .card {
+          border: none;
+          border-radius: 15px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+          background-color: #fff;
+        }
+
+        .card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 15px 30px rgba(220, 53, 69, 0.3);
+        }
+
+        .card-img-top {
+          height: 220px;
+          object-fit: cover;
+          border-top-left-radius: 15px;
+          border-top-right-radius: 15px;
+        }
+
+        .card-title {
+          font-size: 1.3rem;
+          color: #dc3545;
+          font-weight: bold;
+        }
+
+        .btn-danger {
+          background-color: #dc3545;
+          border: none;
+          transition: background-color 0.3s;
+        }
+
+        .btn-danger:hover {
+          background-color: #c82333;
+        }
+
+        .heading-slide-in {
+          animation: fadeIn 1s ease-out;
+        }
+
+        .rent-display {
+          font-size: 1.25rem;
+          color: #333;
+          font-weight: bold;
+          opacity: 0;
+          animation: fadeIn 1s forwards;
+        }
+
+        .modal-content {
+          border-radius: 15px;
+        }
+
+        .modal-header {
+          border-bottom: none;
+        }
+
+        .modal-footer {
+          border-top: none;
+        }
+
+        .footer {
+          background: #f8d7da;
+          padding: 20px;
+          text-align: center;
+          color: #721c24;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar-container"></div>
+<script>
+    fetch('navbar.html')
+      .then(response => response.text())
+      .then(data => document.getElementById('navbar-container').innerHTML = data)
+      .catch(error => console.error('Error loading the navbar:', error));
+</script>
+
+<!-- Calculator Section -->
+<div class="container mt-5">
+    <h2 class="text-center mb-3 heading-slide-in">Rental Calculator</h2>
+    <h4 class="text-center mb-5 heading-slide-in">Just Enter KMs and Calculate Your Rent</h4>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card p-4 text-center">
+                <h5>4-Seater Cab Rent</h5>
+                <button class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#fourSeaterModal">
+                    Enter Distance (In KMS)
+                </button>
+                <p class="mt-3 text-danger rent-display" id="4seater-total">Total Rent: ₹0.00</p>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card p-4 text-center">
+                <h5>6 to 8 Seater Cab Rent</h5>
+                <button class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#sixSeaterModal">
+                    Enter Distance (In KMS)
+                </button>
+                <p class="mt-3 text-danger rent-display" id="6seater-total">Total Rent: ₹0.00</p>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5" />
+
+    <h3 class="text-center mb-4 heading-slide-in">Available Cars</h3>
+    <div id="carRentalDisplay" class="row g-4"></div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="fourSeaterModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Enter Distance for 4-Seater</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="number" id="4seater-km" class="form-control" placeholder="e.g. 50" />
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger w-100" data-bs-dismiss="modal" onclick="calculateRent()">Calculate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sixSeaterModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Enter Distance for 6-Seater+</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="number" id="6seater-km" class="form-control" placeholder="e.g. 50" />
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger w-100" data-bs-dismiss="modal" onclick="calculateRent()">Calculate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<br><br>
+<div id="footer-container"></div>
+<script>
+    fetch('footer.html')
+      .then(response => response.text())
+      .then(data => document.getElementById('footer-container').innerHTML = data)
+      .catch(error => console.error('Error loading the footer:', error));
+</script>
+
+<!-- JS Logic -->
+<script>
+    function animateRentDisplay(elementId, targetAmount) {
+      let current = 0;
+      const step = targetAmount / 30;
+      const element = document.getElementById(elementId);
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= targetAmount) {
+          current = targetAmount;
+          clearInterval(interval);
+        }
+        element.innerText = "Total Rent: ₹" + current.toFixed(2);
+      }, 20);
+    }
+
+    function calculateRent() {
+      const rate4Seater = parseFloat(localStorage.getItem("4seater-rate")) || 0;
+      const rate6Seater = parseFloat(localStorage.getItem("6seater-rate")) || 0;
+
+      const distance4 = parseFloat(document.getElementById("4seater-km").value) || 0;
+      const distance6 = parseFloat(document.getElementById("6seater-km").value) || 0;
+
+      const total4 = rate4Seater * distance4;
+      const total6 = rate6Seater * distance6;
+
+      animateRentDisplay("4seater-total", total4);
+      animateRentDisplay("6seater-total", total6);
+    }
+
+    function loadCarRentals() {
+      fetch("/api/carrentals/enabled")
+        .then(response => response.json())
+        .then(data => {
+          let output = "";
+          data.forEach(car => {
+            output += `
+              <div class="col-md-4">
+                <div class="card h-100">
+                  <img src="${car.imageUrl}" class="card-img-top" alt="Car Image" />
+                  <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                      <h5 class="card-title">${car.carName} (${car.seater}-Seater)</h5>
+                      <p class="card-text"><strong>Car Number:</strong> ${car.carNumber}</p>
+                      <p class="card-text text-danger"><strong>Booking Amount:</strong> ₹${car.price}</p>
+                    </div>
+                    <a
+                      href="carbooking.html?carName=${car.carName}&carNumber=${car.carNumber}&price=${car.price}"
+                      class="btn btn-danger mt-3 w-100"
+                    >Book Now</a>
+                  </div>
+                </div>
+              </div>`;
+          });
+          document.getElementById("carRentalDisplay").innerHTML = output;
+        })
+        .catch(error => console.error("Error fetching car rentals:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", loadCarRentals);
+</script>
+
+<!-- Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

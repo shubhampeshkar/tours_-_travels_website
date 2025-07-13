@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Booking Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #f2f6fa, #e6f0ff);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .report-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-top: 60px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        @media print {
+            .back-btn,
+            .form-control,
+            .btn {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Back Button -->
+<button class="btn btn-outline-primary back-btn" onclick="history.back()">← Back</button>
+
+<div class="container">
+    <div class="report-container">
+        <h2 class="text-center mb-4">📅 Monthly Booking Report</h2>
+
+        <div class="row mb-4 align-items-end">
+            <div class="col-md-4">
+                <label for="monthPicker" class="form-label">Select Month:</label>
+                <input type="month" id="monthPicker" class="form-control">
+            </div>
+            <div class="col-md-4 text-center">
+                <h5 class="mt-3">Total Amount: ₹<span id="monthlyTotal">0.00</span></h5>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-success" onclick="window.print()">🖨️ Print</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="bookingTable">
+                <thead class="table-dark">
+                <tr>
+                    <th>Travel Date</th>
+                    <th>Total Amount (₹)</th>
+                </tr>
+                </thead>
+                <tbody id="bookingTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allBookings = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("/booking-tour-packages/all")
+            .then(response => response.json())
+            .then(data => {
+                allBookings = data;
+                renderTable(allBookings);
+            })
+            .catch(error => console.error("Error fetching data:", error));
+
+        document.getElementById("monthPicker").addEventListener("change", function () {
+            const selectedMonth = this.value;
+            const filtered = allBookings.filter(booking => booking.travelDate.startsWith(selectedMonth));
+            renderTable(filtered);
+        });
+    });
+
+    function renderTable(bookings) {
+        const tableBody = document.getElementById("bookingTableBody");
+        const totalDisplay = document.getElementById("monthlyTotal");
+        let totalAmount = 0;
+        tableBody.innerHTML = "";
+
+        bookings.forEach(booking => {
+            totalAmount += booking.totalAmount;
+            const row = `
+                <tr>
+                    <td>${booking.travelDate}</td>
+                    <td>₹${booking.totalAmount.toFixed(2)}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+
+        totalDisplay.textContent = totalAmount.toFixed(2);
+    }
+</script>
+</body>
+</html>

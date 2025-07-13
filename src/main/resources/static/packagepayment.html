@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Paytm Payment</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <style>
+        body {
+          background: #f2f6ff;
+          font-family: 'Segoe UI', sans-serif;
+        }
+
+        .container {
+          margin-top: 80px;
+          background: white;
+          padding: 40px;
+          border-radius: 15px;
+          box-shadow: 0 0 25px rgba(0, 123, 255, 0.15);
+          max-width: 600px;
+        }
+
+        .paytm-header {
+          text-align: center;
+          margin-bottom: 5px;
+        }
+
+        .paytm-logo {
+          max-width: 150px;
+        }
+
+        h2 {
+          font-weight: 600;
+          color: #003366;
+          text-align: center;
+        }
+
+        .amount-box {
+          font-size: 2.5rem;
+          color: #0070f3;
+          font-weight: bold;
+          margin: 20px 0;
+          text-align: center;
+        }
+
+        .form-label {
+          font-weight: 500;
+        }
+
+        .pay-now-btn {
+          margin-top: 25px;
+          width: 100%;
+          background-color: #00baf2;
+          color: white;
+          font-size: 1.2rem;
+          border: none;
+        }
+
+        .pay-now-btn:hover {
+          background-color: #0070f3;
+        }
+
+        .processing-text {
+          display: none;
+          font-weight: 600;
+          color: #0070f3;
+          margin-top: 20px;
+          text-align: center;
+        }
+
+        .back-btn {
+          position: fixed;
+          top: 20px;
+          left: 20px;
+          z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Back Button -->
+<button class="btn btn-outline-primary back-btn" onclick="history.back()">← Back</button>
+
+<!-- Payment Container -->
+<div class="container">
+    <div class="paytm-header">
+        <img src="https://download.logo.wine/logo/Paytm/Paytm-Logo.wine.png" alt="Paytm Logo" class="paytm-logo"/> </div>
+    <h2>Amount to Pay</h2>
+    <div class="amount-box">
+        ₹<span id="lastTotal">0.00</span>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="fake-payment">
+        <div class="mb-3">
+            <label for="cardType" class="form-label">Card Type</label>
+            <select class="form-control" id="cardType" required>
+                <option value="">Select Card Type</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Credit Card">Credit Card</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="cardName" class="form-label">Cardholder Name</label>
+            <input type="text" class="form-control" id="cardName" required />
+        </div>
+        <div class="mb-3">
+            <label for="cardNumber" class="form-label">Enter Last 4 Digit Of Card</label>
+            <input type="text" class="form-control" id="cardNumber" required />
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="expiry" class="form-label">Expiry Date</label>
+                <input type="text" class="form-control" id="expiry" placeholder="MM/YY" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="cvv" class="form-label">CVV</label>
+                <input type="password" class="form-control" id="cvv" required />
+            </div>
+        </div>
+        <button class="btn pay-now-btn" onclick="handlePayment()">💳 Pay Now</button>
+        <div class="processing-text" id="processingText">Processing payment, please wait...</div>
+    </div>
+</div>
+
+<!-- Script -->
+<script>
+    let totalAmount = 0;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/booking-tour-packages/all")
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            const lastBooking = data[data.length - 1];
+            totalAmount = lastBooking.totalAmount;
+            document.getElementById("lastTotal").textContent = totalAmount.toFixed(2);
+          }
+        })
+        .catch(error => console.error("Error fetching data:", error));
+    });
+
+    function handlePayment() {
+      const cardType = document.getElementById("cardType").value.trim();
+      const cardHolderName = document.getElementById("cardName").value.trim();
+      const cardNumber = document.getElementById("cardNumber").value.trim();
+      const expiry = document.getElementById("expiry").value.trim();
+      const cvv = document.getElementById("cvv").value.trim();
+
+      if (!cardType || !cardHolderName || !cardNumber || !expiry || !cvv) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const paymentData = {
+        cardType,
+        cardHolderName,
+        cardNumber,
+        expiry,
+        cvv,
+        totalAmount
+      };
+
+      document.getElementById("processingText").style.display = "block";
+
+      fetch("http://localhost:8080/api/payment/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paymentData)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to save payment");
+        return response.json();
+      })
+      .then(data => {
+        console.log("Payment saved:", data);
+        window.location.href = "otp1.html";
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Payment failed.");
+        document.getElementById("processingText").style.display = "none";
+      });
+    }
+</script>
+
+</body>
+</html>

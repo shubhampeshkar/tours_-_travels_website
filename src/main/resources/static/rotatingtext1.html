@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smooth Rolling Text</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .marquee-container {
+          overflow: hidden;
+          white-space: nowrap;
+          background-color: #f8f9fa;
+          border: 2px solid #dee2e6;
+          padding: 10px 0;
+          position: relative;
+        }
+
+        .marquee-text-wrapper {
+          display: inline-block;
+          white-space: nowrap;
+          animation: scroll-left 30s linear infinite;
+        }
+
+        .marquee-text {
+          display: inline-block;
+          padding-right: 100px; /* space between loops */
+          font-weight: 500;
+          font-size: 1.1rem;
+          color: #212529;
+        }
+
+        @keyframes scroll-left {
+          0% {
+            transform: translateX(0%);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid marquee-container">
+    <div class="marquee-text-wrapper">
+      <span class="marquee-text">
+        📢 Please bring your valid identity card with you for verification &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 📞 24/7 customer support for a hassle-free experience &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💳 Easy payment options & secure online booking.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📢 Please bring your valid identity card with you for verification &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 📞 24/7 customer support for a hassle-free experience &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💳 Easy payment options & secure online booking.
+      </span>
+    </div>
+</div>
+
+</body>
+</html>

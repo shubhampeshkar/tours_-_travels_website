@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Rental Management</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 30px;
+            background: #fff5f5;
+            color: #2e2e2e;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #c0392b;
+            font-size: 2em;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 3px 10px rgba(192, 57, 43, 0.15);
+        }
+
+        form input,
+        form select,
+        form button {
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        form button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        form button:hover {
+            background-color: #c0392b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0px 3px 12px rgba(192, 57, 43, 0.1);
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        th {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #fff0f0;
+        }
+
+        img {
+            max-width: 80px;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #e74c3c;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #b93e2f;
+        }
+
+        .back-button {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #d63031;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #b71c1c;
+        }
+
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2ecc71;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            font-size: 18px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .custom-alert.show {
+            opacity: 1;
+        }
+    </style>
+
+    <script>
+        function showAlert(message, color = "#2ecc71") {
+            const alertBox = document.createElement("div");
+            alertBox.className = "custom-alert";
+            alertBox.style.backgroundColor = color;
+            alertBox.innerText = message;
+            document.body.appendChild(alertBox);
+
+            setTimeout(() => {
+                alertBox.classList.add("show");
+            }, 100); // allow CSS to register
+
+            setTimeout(() => {
+                alertBox.classList.remove("show");
+                setTimeout(() => alertBox.remove(), 500);
+            }, 2500);
+        }
+
+        async function addCar() {
+            const car = {
+                imageUrl: document.getElementById("imageUrl").value,
+                carName: document.getElementById("carName").value,
+                carNumber: document.getElementById("carNumber").value,
+                seater: parseInt(document.getElementById("seater").value),
+                price: 1000,
+                enabled: document.getElementById("enabled").value === "true"
+            };
+
+            await fetch("/api/carrentals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(car)
+            });
+
+            document.getElementById("carForm").reset();
+            showAlert("Car Added Successfully!");
+            loadCars();
+        }
+
+        async function loadCars() {
+            const response = await fetch("/api/carrentals");
+            const data = await response.json();
+
+            const table = document.getElementById("carTable");
+            table.innerHTML = "";
+            data.forEach(car => {
+                const row = `<tr>
+                    <td><img src="${car.imageUrl}" alt="Car Image" /></td>
+                    <td>${car.carName}</td>
+                    <td>${car.carNumber}</td>
+                    <td>${car.seater}</td>
+                    <td>₹${car.price}</td>
+                    <td>
+                        <select onchange="toggleEnabled(${car.id}, this.value)">
+                            <option value="true" ${car.enabled ? "selected" : ""}>Enable</option>
+                            <option value="false" ${!car.enabled ? "selected" : ""}>Disable</option>
+                        </select>
+                    </td>
+                    <td><button onclick="deleteCar(${car.id})">Delete</button></td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+
+        async function deleteCar(id) {
+            await fetch(`/api/carrentals/${id}`, { method: "DELETE" });
+            showAlert("Car Deleted!", "#e74c3c");
+            loadCars();
+        }
+
+        async function toggleEnabled(id, value) {
+            const res = await fetch(`/api/carrentals`);
+            const cars = await res.json();
+            const car = cars.find(c => c.id === id);
+            car.enabled = value === "true";
+
+            await fetch(`/api/carrentals/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(car)
+            });
+
+            const statusText = car.enabled ? "Enabled" : "Disabled";
+            const color = car.enabled ? "#2ecc71" : "#e67e22";
+            showAlert(`Car ${statusText}`, color);
+            loadCars();
+        }
+
+        window.onload = loadCars;
+    </script>
+</head>
+
+<body>
+<h1>Car Rental Service</h1>
+
+<a class="back-button" href="admindashboard.html">← Back to Dashboard</a>
+
+<form id="carForm" onsubmit="event.preventDefault(); addCar();">
+    <input id="imageUrl" type="text" placeholder="Image URL" required>
+    <input id="carName" type="text" placeholder="Car Name" required>
+    <input id="carNumber" type="text" placeholder="Car Number" required>
+    <input id="seater" type="number" placeholder="Seater" required>
+    <select id="enabled">
+        <option value="true">Enable</option>
+        <option value="false">Disable</option>
+    </select>
+    <button type="submit">Add Car</button>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th>Image</th>
+        <th>Car Name</th>
+        <th>Car Number</th>
+        <th>Seater</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="carTable"></tbody>
+</table>
+</body>
+</html>

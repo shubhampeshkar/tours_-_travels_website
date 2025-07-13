@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Add Tour Packages</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        body {
+          background: linear-gradient(to right, #ffebee, #fce4ec);
+          font-family: 'Segoe UI', sans-serif;
+        }
+        .main-card {
+          background: white;
+          padding: 30px;
+          border-radius: 1rem;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+          border-top: 5px solid #c62828;
+        }
+        h2 {
+          color: #b71c1c;
+          font-weight: bold;
+        }
+        .form-control:focus {
+          border-color: #c62828;
+          box-shadow: 0 0 0 0.25rem rgba(198, 40, 40, 0.25);
+        }
+        .btn-red {
+          background-color: #c62828;
+          border-color: #c62828;
+        }
+        .btn-red:hover {
+          background-color: #b71c1c;
+          border-color: #b71c1c;
+        }
+        .table th {
+          background-color: #b71c1c;
+          color: white;
+          text-align: center;
+        }
+        .table td {
+          vertical-align: middle;
+          text-align: center;
+        }
+        .btn-back {
+          margin-top: 20px;
+        }
+        .form-title {
+          background-color: #FFF8F8;
+          padding: 15px;
+          border-radius: 8px;
+          font-weight: 600;
+          color: #E83F25;
+          margin-bottom: 20px;
+        }
+
+        .custom-alert {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 1050;
+          display: none;
+          width: 350px;
+          padding: 15px;
+        }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -55%);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="main-card">
+        <h2 class="mb-4 text-center"><i class="bi bi-plus-circle-fill me-2"></i>Add Tour Package</h2>
+
+        <!-- Success Alert -->
+        <div id="successAlert" class="alert alert-success custom-alert text-center fade-in" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>Package saved successfully!
+        </div>
+
+        <form id="addPackageForm" class="mb-5">
+            <input type="hidden" id="packageId">
+            <div class="form-title">Package Details</div>
+            <input type="text" id="imageUrl" placeholder="Image URL" class="form-control mb-3" required>
+            <textarea id="description" placeholder="Tour Description" class="form-control mb-3" rows="3" required></textarea>
+            <input type="number" id="price" placeholder="Price" class="form-control mb-3" required>
+            <button type="submit" class="btn btn-primary w-40"><i class="bi bi-save me-1"></i>Save Package</button>
+        </form>
+
+        <h4 class="mb-3 text-danger"><i class="bi bi-boxes me-2"></i>Existing Packages</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Status / Action</th>
+                </tr>
+                </thead>
+                <tbody id="packageList"></tbody>
+            </table>
+        </div>
+
+        <button class="btn btn-outline-primary w-100 btn-back" onclick="location.href='admindashboard.html'">
+            <i class="bi bi-arrow-left me-2"></i>Back
+        </button>
+    </div>
+</div>
+
+<script>
+    function loadPackages() {
+      fetch("/api/packages")
+        .then(response => response.json())
+        .then(data => {
+          let packageList = document.getElementById("packageList");
+          packageList.innerHTML = "";
+          data.forEach(pkg => {
+            packageList.innerHTML += `
+              <tr>
+                <td><img src="${pkg.imageUrl}" width="100" height="80" class="rounded"></td>
+                <td>${pkg.description}</td>
+                <td>₹${pkg.price}</td>
+                <td>
+                  <select onchange="toggleStatus(${pkg.id}, this.value)" class="form-select form-select-sm w-auto d-inline">
+                    <option value="true" ${pkg.enabled ? "selected" : ""}>Enable</option>
+                    <option value="false" ${!pkg.enabled ? "selected" : ""}>Disable</option>
+                  </select>
+                  <button class="btn btn-sm btn-warning ms-2" onclick="editPackage(${pkg.id}, '${pkg.imageUrl}', \`${pkg.description.replace(/'/g, "\\'")}\`, ${pkg.price})">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    function showAlert() {
+      const alertBox = document.getElementById("successAlert");
+      alertBox.style.display = "block";
+      alertBox.classList.add("fade-in");
+
+      setTimeout(() => {
+        alertBox.style.display = "none";
+      }, 3000);
+    }
+
+    document.getElementById("addPackageForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const id = document.getElementById("packageId").value;
+      const packageData = {
+        imageUrl: document.getElementById("imageUrl").value,
+        description: document.getElementById("description").value,
+        price: parseFloat(document.getElementById("price").value),
+        enabled: true
+      };
+
+      const url = id ? `/api/packages/update/${id}` : "/api/packages/add";
+      const method = id ? "PUT" : "POST";
+
+      fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(packageData)
+      })
+      .then(() => {
+        showAlert();
+        loadPackages();
+        document.getElementById("addPackageForm").reset();
+        document.getElementById("packageId").value = "";
+      });
+    });
+
+    function toggleStatus(id, status) {
+      fetch(`/api/packages/status/${id}?status=${status}`, { method: "PUT" })
+        .then(() => loadPackages());
+    }
+
+    function editPackage(id, imageUrl, description, price) {
+      document.getElementById("packageId").value = id;
+      document.getElementById("imageUrl").value = imageUrl;
+      document.getElementById("description").value = description;
+      document.getElementById("price").value = price;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    loadPackages();
+</script>
+
+</body>
+</html>

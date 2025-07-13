@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Booked Treks and Tours</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+    <style>
+        body {
+          background: linear-gradient(to right, #e3f2fd, #e1f5fe);
+          font-family: 'Segoe UI', sans-serif;
+        }
+
+        h2 {
+          color: #0d47a1;
+          font-weight: bold;
+        }
+
+        .card-container {
+          max-width: 95%;
+          margin: 40px auto;
+        }
+
+        .booking-card {
+          border-radius: 15px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease;
+        }
+
+        .booking-card:hover {
+          transform: scale(1.02);
+        }
+
+        .card-body {
+          background-color: #ffffff;
+          border-radius: 0 0 15px 15px;
+        }
+
+        .card-header {
+          background-color: #0d47a1;
+          color: white;
+          font-weight: bold;
+          border-top-left-radius: 15px;
+          border-top-right-radius: 15px;
+        }
+
+        .btn-back {
+          margin: 40px auto 20px;
+          display: block;
+          max-width: 300px;
+        }
+
+        .icon {
+          color: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container card-container">
+    <h2 class="text-center mb-5">
+        <i class="bi bi-backpack3-fill me-2"></i>My Booked Treks and Tours
+    </h2>
+
+    <div class="row" id="trekCards">
+        <!-- Cards will be added here dynamically -->
+    </div>
+
+    <button class="btn btn-outline-primary btn-back" onclick="location.href='cdashboard.html'">
+        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+    </button>
+</div>
+
+<script>
+    fetch("/api/mybookedtreks")
+      .then(res => res.json())
+      .then(data => {
+        let container = document.getElementById("trekCards");
+        if (data.length === 0) {
+          container.innerHTML = `<p class="text-center text-muted">No treks booked yet.</p>`;
+          return;
+        }
+
+        let cards = data.map(trek => `
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card booking-card h-100">
+              <div class="card-header">
+                ${trek.trekName}
+              </div>
+              <div class="card-body">
+                <p><strong><i class="bi bi-calendar-event icon"></i> Date:</strong> ${trek.date}</p>
+                <p><strong><i class="bi bi-clock icon"></i> Time:</strong> ${trek.time}</p>
+                <p><strong><i class="bi bi-currency-rupee icon"></i> Price:</strong> ₹${trek.price}</p>
+                <p><strong><i class="bi bi-person-fill icon"></i> Customer:</strong> ${trek.customerName}</p>
+                <p><strong><i class="bi bi-envelope icon"></i> Email:</strong> ${trek.email}</p>
+                <p><strong><i class="bi bi-telephone-fill icon"></i> Phone:</strong> ${trek.phone}</p>
+                <p><strong><i class="bi bi-people-fill icon"></i> Seats Booked:</strong> ${trek.seatsToBook}</p>
+                <p><strong><i class="bi bi-wallet2 icon"></i> Total Amount:</strong> ₹${trek.totalAmount}</p>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        container.innerHTML = cards;
+      })
+      .catch(err => {
+        document.getElementById("trekCards").innerHTML = `
+          <div class="col-12 text-danger text-center">Failed to load bookings.</div>`;
+        console.error(err);
+      });
+</script>
+
+</body>
+</html>
